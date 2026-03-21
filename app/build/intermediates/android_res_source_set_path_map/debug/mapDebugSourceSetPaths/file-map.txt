@@ -1,0 +1,8 @@
+com.mobile2app.gregharpinventory.app-pngs-0 C:\Users\gregh\Documents\Prog\CS-360\CS-360-Weekly-Assignments\GregHarpInventory\app\build\generated\res\pngs\debug
+com.mobile2app.gregharpinventory.app-resValues-1 C:\Users\gregh\Documents\Prog\CS-360\CS-360-Weekly-Assignments\GregHarpInventory\app\build\generated\res\resValues\debug
+com.mobile2app.gregharpinventory.app-updated_navigation_xml-2 C:\Users\gregh\Documents\Prog\CS-360\CS-360-Weekly-Assignments\GregHarpInventory\app\build\generated\updated_navigation_xml\debug
+com.mobile2app.gregharpinventory.app-packageDebugResources-3 C:\Users\gregh\Documents\Prog\CS-360\CS-360-Weekly-Assignments\GregHarpInventory\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.mobile2app.gregharpinventory.app-packageDebugResources-4 C:\Users\gregh\Documents\Prog\CS-360\CS-360-Weekly-Assignments\GregHarpInventory\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.mobile2app.gregharpinventory.app-debug-5 C:\Users\gregh\Documents\Prog\CS-360\CS-360-Weekly-Assignments\GregHarpInventory\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.mobile2app.gregharpinventory.app-debug-6 C:\Users\gregh\Documents\Prog\CS-360\CS-360-Weekly-Assignments\GregHarpInventory\app\src\debug\res
+com.mobile2app.gregharpinventory.app-main-7 C:\Users\gregh\Documents\Prog\CS-360\CS-360-Weekly-Assignments\GregHarpInventory\app\src\main\res
