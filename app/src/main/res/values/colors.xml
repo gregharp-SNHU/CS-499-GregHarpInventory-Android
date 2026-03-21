@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="add_button_color">#4CAF50</color>
+    <color name="delete_button_color">#C0FF0000</color>
+    <color name="inventory_item_zero_qty">#80FF0000</color>
+    <color name="inventory_item_normal">#00000000</color>
+</resources>
