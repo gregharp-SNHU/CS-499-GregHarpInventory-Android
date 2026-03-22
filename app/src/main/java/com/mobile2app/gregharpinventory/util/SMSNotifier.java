@@ -1,7 +1,6 @@
 package com.mobile2app.gregharpinventory.util;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;

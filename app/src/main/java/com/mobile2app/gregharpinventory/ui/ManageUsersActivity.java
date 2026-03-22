@@ -149,7 +149,7 @@ public class ManageUsersActivity extends AppCompatActivity {
     // fetch all users - except current - from Firestore and update the adapter
     private void loadUsers() {
         // get the current user's UID to exclude them from the list
-        String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String currentUid = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
 
         // load list of users
         db.collection(DbKeys.USERS_COLL)
