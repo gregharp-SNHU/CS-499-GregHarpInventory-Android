@@ -6,6 +6,9 @@ build/
 # Local configuration
 local.properties
 
+# Google Services
+app/google-services.json
+
 # Android Studio
 .idea/
 *.iml
