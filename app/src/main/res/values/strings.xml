@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">GH Inventory</string>
     <string name="inventory_app">Inventory App</string>
-    <string name="username_prompt">Username</string>
+    <string name="username_prompt">Email</string>
     <string name="password_prompt">Password</string>
     <string name="confirm_password_prompt">Confirm Password</string>
     <string name="login_button">Log In</string>
@@ -39,7 +39,7 @@
     <string name="all_items">All Items</string>
     <string name="low_stock">Low Stock</string>
     <string name="out_of_stock">Out of Stock</string>
-    <string name="user_exists">That username already exists.</string>
+    <string name="user_exists">That email is already registered.</string>
     <string name="add_user_failed">User not added to database!</string>
     <string name="invalid_login">Invalid username or password</string>
     <string name="sms_no_telephony">SMS not supported on this device</string>
@@ -56,4 +56,20 @@
     <string name="db_load_done">Sample items loaded: %1$d</string>
     <string name="db_load_failed">Failed to load sample items</string>
     <string name="sample_db_already_loaded">Sample DB already loaded</string>
+    <string name="account_save_failed">Account created but failed to save profile</string>
+    <string name="account_load_failed">Login succeeded but failed to load profile</string>
+    <string name="phone_save_failed">Failed to save phone number</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="enter_email_first">Enter your email address first</string>
+    <string name="reset_email_sent">Password reset email sent</string>
+    <string name="reset_email_failed">Failed to send reset email</string>
+    <string name="manage_users">Manage Users</string>
+    <string name="delete">Delete</string>
+    <string name="role_updated">Role updated</string>
+    <string name="role_update_failed">Failed to update role</string>
+    <string name="confirm_delete_user">Delete User</string>
+    <string name="confirm_delete_user_message">Are you sure you want to delete %1$s?</string>
+    <string name="user_deleted">User deleted</string>
+    <string name="user_delete_failed">Failed to delete user</string>
+    <string name="user_list_failed">Failed to load user list</string>
 </resources>

@@ -5,16 +5,14 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import com.mobile2app.gregharpinventory.model.InventoryItem;
-import com.mobile2app.gregharpinventory.model.User;
 
-@Database(entities = {InventoryItem.class, User.class},
-        version = 1,
+@Database(entities = {InventoryItem.class},
+        version = 2,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
     // DAO accessors
     public abstract ItemDao itemDao();
-    public abstract UserDao userDao();
 
     // singleton instance
     private static volatile AppDatabase INSTANCE;

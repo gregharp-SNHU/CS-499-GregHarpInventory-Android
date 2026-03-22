@@ -28,7 +28,8 @@
         android:layout_marginTop="60dp"
         android:minHeight="48dp"
         android:hint="@string/username_prompt"
-        android:inputType="textPersonName"
+        android:inputType="textEmailAddress"
+        android:autofillHints="emailAddress"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/appTitle" />
@@ -40,6 +41,7 @@
         android:minHeight="48dp"
         android:hint="@string/password_prompt"
         android:inputType="textPassword"
+        android:autofillHints="password"
         android:imeOptions="actionDone"
         app:layout_constraintTop_toBottomOf="@id/usernameEditText"
         app:layout_constraintStart_toStartOf="parent"
@@ -58,6 +60,17 @@
         app:layout_constraintTop_toBottomOf="@id/passwordEditText" />
 
     <Button
+        android:id="@+id/forgotPasswordButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/forgot_password"
+        android:layout_marginTop="8dp"
+        style="@style/Widget.Material3.Button.TextButton"
+        app:layout_constraintTop_toBottomOf="@id/loginButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
         android:id="@+id/createAccountButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -65,6 +78,6 @@
         android:text="@string/create_account_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/loginButton" />
+        app:layout_constraintTop_toBottomOf="@id/forgotPasswordButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -15,12 +15,14 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.mobile2app.gregharpinventory.R;
-import com.mobile2app.gregharpinventory.data.AppDatabase;
-import com.mobile2app.gregharpinventory.data.UserDao;
-import com.mobile2app.gregharpinventory.model.User;
 import com.mobile2app.gregharpinventory.util.Toaster;
+import com.mobile2app.gregharpinventory.model.Roles;
+import com.mobile2app.gregharpinventory.model.Prefs;
+import com.mobile2app.gregharpinventory.model.DbKeys;
 
-import java.util.concurrent.Executors;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -28,24 +30,25 @@ public class LoginActivity extends AppCompatActivity {
     private EditText usernameEditText;
     private EditText passwordEditText;
     private Button loginButton;
-    private Button createAccountButton;
+
+    // Firebase Authentication instance
+    private FirebaseAuth mAuth;
 
     // prefs instance and labels for the user account and role for preferences
     private SharedPreferences prefs;
-    private static final String PREFS_NAME = "MyPrefs";
-    private static final String KEY_USERNAME = "username";
-    private static final String KEY_PHONE = "phone";
-    private static final String KEY_ROLE = "role";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // get preferences
-        prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        prefs = getSharedPreferences(Prefs.NAME, MODE_PRIVATE);
 
-        // check if already logged in -- if so jump straight to inventory
-        if (!prefs.getString(KEY_USERNAME, "").isEmpty()) {
+        // initialize Firebase Authentication
+        mAuth = FirebaseAuth.getInstance();
+
+        // check if already logged in -- Firebase session and prefs must both be valid
+        if (mAuth.getCurrentUser() != null && !prefs.getString(Prefs.KEY_USERNAME, "").isEmpty()) {
             // user is already logged in — skip to InventoryActivity
             startActivity(new Intent(LoginActivity.this, InventoryActivity.class));
             finish();
@@ -67,7 +70,7 @@ public class LoginActivity extends AppCompatActivity {
         usernameEditText = findViewById(R.id.usernameEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         loginButton = findViewById(R.id.loginButton);
-        createAccountButton = findViewById(R.id.createAccountButton);
+        Button createAccountButton = findViewById(R.id.createAccountButton);
 
         // ensure the Login button is disabled by default
         loginButton.setEnabled(false);
@@ -118,43 +121,85 @@ public class LoginActivity extends AppCompatActivity {
             String username = usernameEditText.getText().toString().trim();
             String password = passwordEditText.getText().toString().trim();
 
-            // run the database work in the background
-            Executors.newSingleThreadExecutor().execute(() -> {
-                AppDatabase db = AppDatabase.getInstance(getApplicationContext());
-                UserDao userDao = db.userDao();
-                User user = userDao.login(username, password);
+            // authenticate with Firebase using username (email) and password
+            mAuth.signInWithEmailAndPassword(username, password)
+                    .addOnCompleteListener(this, task -> {
+                        if (task.isSuccessful()) {
+                            // Firebase authentication succeeded -- get the current user
+                            FirebaseUser firebaseUser = mAuth.getCurrentUser();
 
-                // handle user notification and preferences setting on the UI thread
-                runOnUiThread(() -> {
-                    // if the user isn't found in the DB or the password is incorrect
-                    if (user == null) {
-                        Toaster.show(this, R.string.invalid_login);
+                            if (firebaseUser != null) {
+                                // look up the user's role and phone from Firestore
+                                FirebaseFirestore.getInstance()
+                                    .collection(DbKeys.USERS_COLL)
+                                    .document(firebaseUser.getUid())
+                                    .get()
+                                    .addOnSuccessListener(doc -> {
+                                        // save user info in SharedPreferences
+                                        SharedPreferences.Editor editor = prefs.edit();
+                                        editor.putString(Prefs.KEY_USERNAME, firebaseUser.getEmail());
 
-                        // re-enable the Login button
-                        loginButton.setEnabled(true);
+                                        if (doc.exists()) {
+                                            // use the role and phone from Firestore
+                                            editor.putString(Prefs.KEY_PHONE, doc.getString(DbKeys.PHONE));
+                                            editor.putString(Prefs.KEY_ROLE, doc.getString(DbKeys.ROLE));
+                                        } else {
+                                            // default to basic user role if no Firestore record exists
+                                            editor.putString(Prefs.KEY_PHONE, "");
+                                            editor.putString(Prefs.KEY_ROLE, Roles.USER);
+                                        }
 
-                        // focus on the password field
-                        passwordEditText.requestFocus();
-                        passwordEditText.selectAll();
-                    }
-                    // otherwise log the user in and safe in preferences
-                    else {
-                        // save username and role in SharedPreferences
-                        SharedPreferences.Editor editor = prefs.edit();
-                        editor.putString(KEY_USERNAME, user.getUsername());
-                        editor.putString(KEY_PHONE, user.getPhone());
-                        editor.putString(KEY_ROLE, user.getRole());
-                        editor.apply();
+                                        editor.apply();
 
-                        // cancel any outstanding Toasts
-                        Toaster.cancel();
+                                        // cancel any outstanding Toasts
+                                        Toaster.cancel();
 
-                        // go to the inventory screen
-                        startActivity(new Intent(LoginActivity.this, InventoryActivity.class));
-                        finish();
-                    }
-                });
-            });
+                                        // go to the inventory screen
+                                        startActivity(new Intent(LoginActivity.this,
+                                                InventoryActivity.class));
+                                        finish();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        // Firestore lookup failed -- notify the user
+                                        Toaster.show(LoginActivity.this,
+                                                getString(R.string.account_load_failed));
+
+                                        // re-enable the Login button so they can retry
+                                        loginButton.setEnabled(true);
+                                    });
+                            }
+                        } else {
+                            // Firebase authentication failed -- notify the user
+                            Toaster.show(LoginActivity.this, R.string.invalid_login);
+
+                            // re-enable the Login button
+                            loginButton.setEnabled(true);
+
+                            // focus on the password field
+                            passwordEditText.requestFocus();
+                            passwordEditText.selectAll();
+                        }
+                    });
+        });
+
+        // wire up the Forgot Password button
+        Button forgotPasswordButton = findViewById(R.id.forgotPasswordButton);
+        forgotPasswordButton.setOnClickListener(v -> {
+            String email = usernameEditText.getText().toString().trim();
+
+            // ensure the user has entered an email address
+            if (email.isEmpty()) {
+                Toaster.show(this, getString(R.string.enter_email_first));
+                usernameEditText.requestFocus();
+                return;
+            }
+
+            // send the password reset email through Firebase
+            FirebaseAuth.getInstance().sendPasswordResetEmail(email)
+                    .addOnSuccessListener(unused ->
+                            Toaster.show(this, getString(R.string.reset_email_sent)))
+                    .addOnFailureListener(e ->
+                            Toaster.show(this, getString(R.string.reset_email_failed)));
         });
 
         // create the connection from the Create Account button to that activity
@@ -190,7 +235,7 @@ public class LoginActivity extends AppCompatActivity {
 
     // function to prefill the username if saved in preferences
     private void prefillUsername() {
-        String savedUsername = prefs.getString(KEY_USERNAME, "");
+        String savedUsername = prefs.getString(Prefs.KEY_USERNAME, "");
         if (!savedUsername.isEmpty()) {
             // populate the username and set focus to the password field
             usernameEditText.setText(savedUsername);

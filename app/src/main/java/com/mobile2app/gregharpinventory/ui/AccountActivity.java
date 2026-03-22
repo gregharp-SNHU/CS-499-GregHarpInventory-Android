@@ -22,24 +22,22 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.mobile2app.gregharpinventory.R;
 import com.mobile2app.gregharpinventory.data.AppDatabase;
 import com.mobile2app.gregharpinventory.data.ItemDao;
-import com.mobile2app.gregharpinventory.data.UserDao;
 import com.mobile2app.gregharpinventory.model.InventoryItem;
-import com.mobile2app.gregharpinventory.model.User;
 import com.mobile2app.gregharpinventory.util.SMSNotifier;
 import com.mobile2app.gregharpinventory.util.Toaster;
+import com.mobile2app.gregharpinventory.model.Roles;
+import com.mobile2app.gregharpinventory.model.Prefs;
+import com.mobile2app.gregharpinventory.model.DbKeys;
 
 import java.util.concurrent.Executors;
 
-public class AccountActivity extends AppCompatActivity {
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.HashMap;
+import java.util.Map;
 
-    // labels for the user account and role for preferences
-    private static final String PREFS_NAME = "MyPrefs";
-    private static final String KEY_USERNAME = "username";
-    private static final String KEY_PHONE = "phone";
-    private static final String KEY_SMS_ON = "sms_enabled";
-    private static final String KEY_SMS_REQUEST = "sms_requested";
-    private static final String KEY_ROLE = "role";
-    private static final String KEY_SAMPLE_DB = "sample_db";
+public class AccountActivity extends AppCompatActivity {
 
     // pull the SMS switch up to a class variable so it can be used by multiple methods
     private SwitchMaterial smsSwitch;
@@ -59,14 +57,14 @@ public class AccountActivity extends AppCompatActivity {
         });
 
         // load username and role from SharedPreferences
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String username = prefs.getString(KEY_USERNAME, getString(R.string.unknown_value));
-        String phone = prefs.getString(KEY_PHONE, "");
-        String role = prefs.getString(KEY_ROLE, getString(R.string.unknown_value));
+        SharedPreferences prefs = getSharedPreferences(Prefs.NAME, MODE_PRIVATE);
+        String username = prefs.getString(Prefs.KEY_USERNAME, getString(R.string.unknown_value));
+        String phone = prefs.getString(Prefs.KEY_PHONE, "");
+        String role = prefs.getString(Prefs.KEY_ROLE, getString(R.string.unknown_value));
 
         // if the phone number is blank, reset the SMS prefs to disabled
         if (phone.isEmpty()) {
-            prefs.edit().putBoolean(KEY_SMS_ON, false).apply();
+            prefs.edit().putBoolean(Prefs.KEY_SMS_ON, false).apply();
         }
 
         // bind UI elements
@@ -82,7 +80,7 @@ public class AccountActivity extends AppCompatActivity {
 
         // find the SMS switch status in prefs and initialize
         smsSwitch = findViewById(R.id.smsSwitch);
-        smsSwitch.setChecked(prefs.getBoolean(KEY_SMS_ON, false));
+        smsSwitch.setChecked(prefs.getBoolean(Prefs.KEY_SMS_ON, false));
 
         // set up SMS switch toggle handler
         smsSwitch.setOnCheckedChangeListener((button, isChecked) -> {
@@ -116,7 +114,7 @@ public class AccountActivity extends AppCompatActivity {
                 smsSwitchSuppress = false;
 
                 // remember that the user tried to enable SMS
-                prefs.edit().putBoolean(KEY_SMS_REQUEST, true).apply();
+                prefs.edit().putBoolean(Prefs.KEY_SMS_REQUEST, true).apply();
 
                 // request permission
                 ActivityCompat.requestPermissions(this,
@@ -128,56 +126,62 @@ public class AccountActivity extends AppCompatActivity {
             }
 
             // save that the user enabled or disabled SMS in prefs
-            prefs.edit().putBoolean(KEY_SMS_ON, isChecked).apply();
+            prefs.edit().putBoolean(Prefs.KEY_SMS_ON, isChecked).apply();
         });
 
         // set up save handler for phone number changes
         savePhoneButton.setOnClickListener(v-> {
-            // perform user database update in the background
-            Executors.newSingleThreadExecutor().execute(() -> {
-                // get the user to update
-                AppDatabase db = AppDatabase.getInstance((getApplicationContext()));
-                UserDao userDao = db.userDao();
-                User user = userDao.findByUsername(username);
+            // read raw input and normalize to digits
+            String changedDigits = phoneText.getText().toString().replaceAll("\\D+", "");
 
-                // read raw input and normalize to digits
-                String changedDigits = phoneText.getText().toString().replaceAll("\\D+", "");
+            // get the current Firebase user
+            FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
-                // ensure user was found
-                if (user != null) {
-                    // set the new phone number and update the database
-                    user.setPhone(changedDigits);
-                    userDao.updateUser(user);
-                }
+            if (firebaseUser != null) {
+                // build the update map for Firestore
+                Map<String, Object> updates = new HashMap<>();
+                updates.put(DbKeys.PHONE, changedDigits);
 
-                // run prefs update on UI thread
-                runOnUiThread(() -> {
-                    // set up prefs editor
-                    SharedPreferences.Editor editor = prefs.edit();
+                // update the phone number in Firestore
+                FirebaseFirestore.getInstance()
+                    .collection(DbKeys.USERS_COLL)
+                    .document(firebaseUser.getUid())
+                    .update(updates)
+                    .addOnSuccessListener(unused -> {
+                        // set up prefs editor
+                        SharedPreferences.Editor editor = prefs.edit();
 
-                    // safe the digits (even if blank)
-                    editor.putString(KEY_PHONE, changedDigits);
+                        // save the digits (even if blank)
+                        editor.putString(Prefs.KEY_PHONE, changedDigits);
 
-                    // if digits are empty (phone number deleted)
-                    if (changedDigits.isEmpty()) {
-                        // disable SMS messages
-                        editor.putBoolean(KEY_SMS_ON, false);
-                        smsSwitch.setChecked(false);
-                    }
+                        // if digits are empty (phone number deleted)
+                        if (changedDigits.isEmpty()) {
+                            // disable SMS messages
+                            editor.putBoolean(Prefs.KEY_SMS_ON, false);
+                            smsSwitch.setChecked(false);
+                        }
 
-                    // write the changes
-                    editor.apply();
-                });
-            });
+                        // write the changes
+                        editor.apply();
+                    })
+                    .addOnFailureListener(e -> {
+                        // Firestore update failed -- notify the user
+                        Toaster.show(AccountActivity.this,
+                                getString(R.string.phone_save_failed));
+                    });
+            }
         });
 
         // hook up Log Out button
         Button logoutButton = findViewById(R.id.logoutButton);
         logoutButton.setOnClickListener(v -> {
+            // sign out of Firebase Authentication
+            FirebaseAuth.getInstance().signOut();
+
             // clear username and role from SharedPreferences
             prefs.edit()
-                    .remove(KEY_USERNAME)
-                    .remove(KEY_ROLE)
+                    .remove(Prefs.KEY_USERNAME)
+                    .remove(Prefs.KEY_ROLE)
                     .apply();
 
             // go back to LoginActivity
@@ -186,22 +190,37 @@ public class AccountActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // hook up the Manage Users button -- only visible to Owners
+        Button manageUsersButton = findViewById(R.id.manageUsersButton);
+        if (!role.equals(Roles.OWNER)) {
+            manageUsersButton.setVisibility(android.view.View.GONE);
+        } else {
+            manageUsersButton.setOnClickListener(v -> {
+                startActivity(new Intent(AccountActivity.this,
+                    ManageUsersActivity.class));
+            });
+        }
+
         // hook up the button to seed the sample database
         Button sampleButton = findViewById(R.id.sampleDataButton);
+        // only show the sample data button for the Owner role
+        if (!role.equals(Roles.OWNER)) {
+            sampleButton.setVisibility(android.view.View.GONE);
+        } else {
+            // if the database is already seeded, disable this button
+            if (prefs.getBoolean(Prefs.KEY_SAMPLE_DB, false)) {
+                // disable the button
+                sampleButton.setEnabled(false);
 
-        // if the database is already seeded, disable this button
-        if (prefs.getBoolean(KEY_SAMPLE_DB, false)) {
-            // disable the button
-            sampleButton.setEnabled(false);
-
-            // change the button text to say sample is already loaded
-            sampleButton.setText(R.string.sample_db_already_loaded);
+                // change the button text to say sample is already loaded
+                sampleButton.setText(R.string.sample_db_already_loaded);
+            }
         }
 
         // set onClickListener for sampleButton
         sampleButton.setOnClickListener(v ->{
             // prevent re-load if already done
-            if (prefs.getBoolean(KEY_SAMPLE_DB, false)) {
+            if (prefs.getBoolean(Prefs.KEY_SAMPLE_DB, false)) {
                 Toaster.show(this, R.string.sample_db_already_loaded);
                 return;
             }
@@ -210,7 +229,7 @@ public class AccountActivity extends AppCompatActivity {
             sampleButton.setEnabled(false);
 
             // set prefs to note that database load button has been pressed
-            prefs.edit().putBoolean(KEY_SAMPLE_DB, true).apply();
+            prefs.edit().putBoolean(Prefs.KEY_SAMPLE_DB, true).apply();
 
             // run database operations in the background
             Executors.newSingleThreadExecutor().execute(() -> {
@@ -272,6 +291,12 @@ public class AccountActivity extends AppCompatActivity {
 
         // set up the bottom navigation bar
         BottomNavigationView bottomNavView = findViewById(R.id.bottomNavView);
+
+        // hide the Reports tab for basic Users -- only Managers and Owners can access
+        if (role.equals(Roles.USER)) {
+            bottomNavView.getMenu().findItem(R.id.nav_reports).setVisible(false);
+        }
+
         bottomNavView.setSelectedItemId(R.id.nav_account);
         bottomNavView.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -319,13 +344,13 @@ public class AccountActivity extends AppCompatActivity {
         // check if the user has requested permission to send SMS messages
         if (requestCode == SMSNotifier.REQ_SEND_SMS) {
             // connect to the SharedPreferences
-            SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+            SharedPreferences prefs = getSharedPreferences(Prefs.NAME, MODE_PRIVATE);
 
             // determine if the user tried to enable SMS
-            boolean requestSMS = prefs.getBoolean(KEY_SMS_REQUEST, false);
+            boolean requestSMS = prefs.getBoolean(Prefs.KEY_SMS_REQUEST, false);
 
             // remove the temporary request flag from prefs
-            prefs.edit().remove(KEY_SMS_REQUEST).apply();
+            prefs.edit().remove(Prefs.KEY_SMS_REQUEST).apply();
 
             if ((requestSMS && grantResults.length > 0)
                     && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
@@ -335,7 +360,7 @@ public class AccountActivity extends AppCompatActivity {
                 smsSwitchSuppress = false;
 
                 // permission granted - save that in Prefs
-                prefs.edit().putBoolean(KEY_SMS_ON, true).apply();
+                prefs.edit().putBoolean(Prefs.KEY_SMS_ON, true).apply();
             }
             else {
                 // keep the UI switch off
@@ -344,7 +369,7 @@ public class AccountActivity extends AppCompatActivity {
                 smsSwitchSuppress = false;
 
                 // permission denied - save that in prefs
-                prefs.edit().putBoolean(KEY_SMS_ON, false).apply();
+                prefs.edit().putBoolean(Prefs.KEY_SMS_ON, false).apply();
             }
         }
     }

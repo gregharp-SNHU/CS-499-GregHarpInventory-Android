@@ -1,9 +1,9 @@
 package com.mobile2app.gregharpinventory.ui;
 
 import android.os.Bundle;
+import android.content.SharedPreferences;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -15,6 +15,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.mobile2app.gregharpinventory.model.Prefs;
 import com.mobile2app.gregharpinventory.util.SMSNotifier;
 import com.mobile2app.gregharpinventory.viewmodel.ItemViewModel;
 
@@ -23,14 +24,13 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.mobile2app.gregharpinventory.ui.adapter.InventoryAdapter;
 import com.mobile2app.gregharpinventory.R;
 import com.mobile2app.gregharpinventory.model.InventoryItem;
+import com.mobile2app.gregharpinventory.model.Roles;
 
 import java.util.ArrayList;
 
 public class InventoryActivity extends AppCompatActivity {
 
     // private variables for the view
-    private RecyclerView recyclerView;
-    private InventoryAdapter adapter;
     private ActivityResultLauncher<Intent> addItemLauncher;
     private ActivityResultLauncher<Intent> editItemLauncher;
 
@@ -54,11 +54,11 @@ public class InventoryActivity extends AppCompatActivity {
         vm = new ViewModelProvider(this).get(ItemViewModel.class);
 
         // initialize the recycler view
-        recyclerView = findViewById(R.id.inventoryRecyclerView);
+        RecyclerView recyclerView = findViewById(R.id.inventoryRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         // connect the adapter to the recycler view
-        adapter = new InventoryAdapter(new ArrayList<>());
+        InventoryAdapter adapter = new InventoryAdapter(new ArrayList<>());
         recyclerView.setAdapter(adapter);
 
         // feed database when changes are made
@@ -78,8 +78,11 @@ public class InventoryActivity extends AppCompatActivity {
                         String name = result.getData().getStringExtra("item_name");
                         int quantity = result.getData().getIntExtra("item_quantity", 0);
 
-                        // insert new item into DB
-                        vm.insert(new InventoryItem(name, quantity));
+                        // ensure item name is not null
+                        if (name != null) {
+                            // insert new item into DB
+                            vm.insert(new InventoryItem(name, quantity));
+                        }
                     }
                 }
         );
@@ -101,7 +104,7 @@ public class InventoryActivity extends AppCompatActivity {
                         String updatedName = result.getData().getStringExtra("item_name");
                         int updatedQuantity = result.getData().getIntExtra("item_quantity", 0);
 
-                        if (id > 0) {
+                        if (id > 0 && updatedName != null) {
                             // build an entity with the same PK and new values
                             InventoryItem updatedItem = new InventoryItem(id, updatedName, updatedQuantity);
                             vm.update(updatedItem);
@@ -141,6 +144,15 @@ public class InventoryActivity extends AppCompatActivity {
 
         // set up the bottom navigation bar
         BottomNavigationView bottomNavView = findViewById(R.id.bottomNavView);
+
+        // hide the Reports tab for basic Users -- only Managers and Owners can access
+        SharedPreferences prefs = getSharedPreferences(Prefs.NAME, MODE_PRIVATE);
+        String role = prefs.getString(Prefs.KEY_ROLE, Roles.USER);
+        if (role.equals(Roles.USER)) {
+            bottomNavView.getMenu().findItem(R.id.nav_reports).setVisible(false);
+        }
+
+        // wire up the listener for the bottom nav bar
         bottomNavView.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
 

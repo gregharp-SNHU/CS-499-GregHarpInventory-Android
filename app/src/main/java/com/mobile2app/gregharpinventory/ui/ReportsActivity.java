@@ -3,7 +3,7 @@ package com.mobile2app.gregharpinventory.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.RadioGroup;
-import android.widget.RadioButton;
+import android.content.SharedPreferences;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,8 +17,10 @@ import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import com.mobile2app.gregharpinventory.R;
+import com.mobile2app.gregharpinventory.model.Prefs;
 import com.mobile2app.gregharpinventory.ui.adapter.ReportAdapter;
 import com.mobile2app.gregharpinventory.viewmodel.ReportsViewModel;
+import com.mobile2app.gregharpinventory.model.Roles;
 
 import java.util.ArrayList;
 
@@ -31,6 +33,16 @@ public class ReportsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // verify the user has permission to view reports -- redirect basic Users
+        SharedPreferences prefs = getSharedPreferences(Prefs.NAME, MODE_PRIVATE);
+        String role = prefs.getString(Prefs.KEY_ROLE, Roles.USER);
+        if (role.equals(Roles.USER)) {
+            // basic Users cannot access reports -- redirect to Inventory
+            startActivity(new Intent(ReportsActivity.this, InventoryActivity.class));
+            finish();
+            return;
+        }
 
         // set up the view
         EdgeToEdge.enable(this);

@@ -52,6 +52,13 @@
             android:layout_height="wrap_content"
             android:text="@string/log_out_button"
             android:layout_marginTop="20dp" />
+
+        <Button
+            android:id="@+id/manageUsersButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/manage_users"
+            android:layout_marginTop="20dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -75,6 +82,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/phone_colon"
+                android:autofillHints="phone"
                 android:textSize="18sp"
                 android:layout_marginTop="8dp"
                 android:labelFor="@id/phoneAccEditText" />
@@ -112,24 +120,14 @@
                 android:textSize="16sp"
                 android:layout_marginTop="16dp" />
         </LinearLayout>
+
+        <Button
+            android:id="@+id/sampleDataButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/load_sample_items"
+            android:layout_marginTop="20dp" />
     </LinearLayout>
-
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/colsBottomBarrier"
-        app:barrierDirection="bottom"
-        app:constraint_referenced_ids="leftColumn,rightColumn"
-        android:layout_height="1dp"
-        android:layout_width="wrap_content" />
-
-    <Button
-        android:id="@+id/sampleDataButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/load_sample_items"
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@id/colsBottomBarrier"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -138,7 +136,6 @@
         android:layout_height="wrap_content"
         android:background="?android:attr/windowBackground"
         app:menu="@menu/bottom_nav_menu"
-        app:layout_constraintTop_toBottomOf="@id/sampleDataButton"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

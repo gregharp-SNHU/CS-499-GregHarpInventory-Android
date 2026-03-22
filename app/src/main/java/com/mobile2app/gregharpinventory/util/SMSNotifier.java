@@ -10,15 +10,11 @@ import android.telephony.SmsManager;
 import androidx.core.content.ContextCompat;
 
 import com.mobile2app.gregharpinventory.R;
+import com.mobile2app.gregharpinventory.model.Prefs;
 
 public final class SMSNotifier {
     // request code used when asking the user for SMS permission
     public static final int REQ_SEND_SMS = 4221;
-
-    // set up for SharedPreferences
-    private static final String PREFS_NAME = "MyPrefs";
-    private static final String KEY_SMS_ON = "sms_enabled";
-    private static final String KEY_PHONE = "phone";
 
     // default constructor
     private SMSNotifier() {
@@ -28,13 +24,13 @@ public final class SMSNotifier {
     // method to trigger an SMS when an item transitions to "out of stock"
     public static void notifyOutOfStock(Context context, String itemName) {
         // read the SMS settings from SharedPreferences
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getSharedPreferences(Prefs.NAME, Context.MODE_PRIVATE);
 
         // check if SMS alerts are enabled
-        boolean enabled = prefs.getBoolean(KEY_SMS_ON, false);
+        boolean enabled = prefs.getBoolean(Prefs.KEY_SMS_ON, false);
 
         // get the configured destination phone number
-        String phone = prefs.getString(KEY_PHONE, "");
+        String phone = prefs.getString(Prefs.KEY_PHONE, "");
 
         // if SMS is disabled or the phone number is missing, abort
         if (!enabled || phone.isEmpty()) {
