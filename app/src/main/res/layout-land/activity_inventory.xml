@@ -9,106 +9,116 @@
     tools:context=".ui.InventoryActivity"
     android:padding="24dp">
 
-    <!-- Page title (left side in landscape) -->
-    <TextView
-        android:id="@+id/inventoryTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/inventory"
-        android:textSize="24sp"
-        android:textStyle="bold"
+    <!-- Left column: title, search, filters, sort -->
+    <LinearLayout
+        android:id="@+id/leftColumn"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:layout_marginStart="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/bottomNavView"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_percent="0.30">
 
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/titleEndBarrier"
-        android:layout_height="wrap_content"
-        android:layout_width="0dp"
-        app:barrierDirection="end"
-        app:barrierMargin="16dp"
-        app:constraint_referenced_ids="inventoryTitle" />
-
-    <!-- Search bar -->
-    <EditText
-        android:id="@+id/searchEditText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="@string/search_hint"
-        android:inputType="text"
-        android:drawableStart="@drawable/search_icon"
-        android:drawablePadding="8dp"
-        android:padding="8dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toEndOf="@id/titleEndBarrier"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Filter and sort row -->
-    <LinearLayout
-        android:id="@+id/filterRow"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="4dp"
-        app:layout_constraintTop_toBottomOf="@id/searchEditText"
-        app:layout_constraintStart_toEndOf="@id/titleEndBarrier"
-        app:layout_constraintEnd_toEndOf="parent">
-
-    <!-- Stock status filter -->
-    <Spinner
-        android:id="@+id/statusSpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="3" />
-
-    <!-- Low stock threshold (visible only when Low Stock selected) -->
-    <EditText
-        android:id="@+id/thresholdEditText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:hint="@string/threshold_hint"
-        android:inputType="number"
-        android:gravity="center"
-        android:padding="4dp"
-        android:visibility="gone"
-        android:layout_marginStart="4dp" />
-
-    <!-- Min quantity -->
-    <EditText
-        android:id="@+id/minQtyEditText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:hint="@string/min_qty_hint"
-        android:inputType="number"
-        android:gravity="center"
-        android:padding="4dp"
-        android:layout_marginStart="4dp" />
-
-        <!-- Max quantity -->
-        <EditText
-            android:id="@+id/maxQtyEditText"
-            android:layout_width="0dp"
+        <!-- Page title (left side in landscape) -->
+        <TextView
+            android:id="@+id/inventoryTitle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="@string/max_qty_hint"
-            android:inputType="number"
-            android:gravity="center"
-            android:padding="4dp"
-            android:layout_marginStart="4dp" />
+            android:text="@string/inventory"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
 
-        <!-- Sort button -->
-        <ImageButton
-            android:id="@+id/sortButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/sort_icon"
-            android:contentDescription="@string/sort"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:scaleType="centerInside"
-            android:layout_marginStart="4dp" />
+        <!-- Search bar with sort button -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+
+            <!-- Search bar -->
+            <EditText
+                android:id="@+id/searchEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/search_hint"
+                android:inputType="text"
+                android:autofillHints="none"
+                android:drawableStart="@drawable/search_icon"
+                android:drawablePadding="8dp"
+                android:padding="8dp" />
+
+            <!-- Sort button -->
+            <ImageButton
+                android:id="@+id/sortButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/sort_icon"
+                android:contentDescription="@string/sort"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:scaleType="centerInside" />
+        </LinearLayout>
+
+        <!-- Stock status filter -->
+        <Spinner
+            android:id="@+id/statusSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:paddingStart="48dp"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Low stock threshold (visible only when Low Stock selected) -->
+        <EditText
+            android:id="@+id/thresholdEditText"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/threshold_hint"
+            android:inputType="number"
+            android:autofillHints="none"
+            android:gravity="center"
+            android:layout_gravity="center_horizontal"
+            android:padding="4dp"
+            android:visibility="gone"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Quantity range row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="24dp"
+            android:layout_marginBottom="4dp">
+
+            <!-- Min quantity -->
+            <EditText
+                android:id="@+id/minQtyEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/min_qty_hint"
+                android:inputType="number"
+                android:autofillHints="none"
+                android:gravity="center"
+                android:padding="4dp"
+                android:layout_marginEnd="4dp" />
+
+            <!-- Max quantity -->
+            <EditText
+                android:id="@+id/maxQtyEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/max_qty_hint"
+                android:inputType="number"
+                android:autofillHints="none"
+                android:gravity="center"
+                android:padding="4dp" />
+        </LinearLayout>
     </LinearLayout>
 
     <!-- Column headers -->
@@ -120,10 +130,10 @@
         android:weightSum="8"
         android:paddingStart="16dp"
         android:paddingBottom="8dp"
-        android:layout_marginTop="4dp"
-        app:layout_constraintTop_toBottomOf="@id/filterRow"
-        app:layout_constraintStart_toEndOf="@id/titleEndBarrier"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/leftColumn"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="16dp">
 
         <TextView
             android:layout_weight="6"
@@ -154,7 +164,7 @@
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/inventoryHeaders"
         app:layout_constraintBottom_toTopOf="@id/bottomNavView"
-        app:layout_constraintStart_toEndOf="@id/titleEndBarrier"
+        app:layout_constraintStart_toEndOf="@id/leftColumn"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Scrolling list of results -->
@@ -164,11 +174,12 @@
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/inventoryHeaders"
         app:layout_constraintBottom_toTopOf="@id/bottomNavView"
-        app:layout_constraintStart_toEndOf="@id/titleEndBarrier"
+        app:layout_constraintStart_toEndOf="@id/leftColumn"
         app:layout_constraintEnd_toEndOf="parent"
         android:clipToPadding="false"
         android:paddingTop="8dp"
-        android:paddingBottom="72dp" />
+        android:paddingBottom="72dp"
+        android:layout_marginStart="16dp" />
 
     <!-- FAB to add item -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton

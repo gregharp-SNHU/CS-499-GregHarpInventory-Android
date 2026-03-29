@@ -15,6 +15,7 @@ import java.util.List;
 @Dao
 public interface ItemDao {
     // fetch all items as a livedata list ordered by name (case insensitive)
+    @SuppressWarnings("GrazieInspection")
     @Query("SELECT * FROM items ORDER BY itemName COLLATE NOCASE")
     LiveData<List<InventoryItem>> getAllLive();
 

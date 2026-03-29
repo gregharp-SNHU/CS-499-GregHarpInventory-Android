@@ -38,16 +38,16 @@
             android:text="@string/all_items" />
 
         <RadioButton
-            android:id="@+id/rb_low"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/low_stock" />
-
-        <RadioButton
             android:id="@+id/rb_out"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/out_of_stock" />
+
+        <RadioButton
+            android:id="@+id/rb_low"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/low_stock" />
     </RadioGroup>
 
     <!-- Low stock threshold (visible only when Low Stock selected) -->
@@ -57,12 +57,12 @@
         android:layout_height="wrap_content"
         android:hint="@string/threshold_hint"
         android:inputType="number"
+        android:autofillHints="none"
         android:gravity="center"
         android:padding="4dp"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/reportTypeGroup"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="@id/reportTypeGroup" />
 
     <LinearLayout
         android:id="@+id/reportHeaderRow"

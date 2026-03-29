@@ -106,12 +106,15 @@ public class ReportsActivity extends AppCompatActivity {
 
             if (type == ReportsViewModel.ReportType.ALL) {
                 reportTypeGroup.check(R.id.rb_all);
+                reportThresholdEditText.setVisibility(View.GONE);
             }
             else if (type == ReportsViewModel.ReportType.LOW_STOCK) {
                 reportTypeGroup.check(R.id.rb_low);
+                reportThresholdEditText.setVisibility(View.VISIBLE);
             }
             else if (type == ReportsViewModel.ReportType.OUT_OF_STOCK) {
                 reportTypeGroup.check(R.id.rb_out);
+                reportThresholdEditText.setVisibility(View.GONE);
             }
 
             // disable updating from view model
