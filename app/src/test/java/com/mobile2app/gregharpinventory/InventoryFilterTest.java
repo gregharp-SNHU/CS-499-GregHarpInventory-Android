@@ -283,7 +283,7 @@ public class InventoryFilterTest {
         // "a" matches: Apples(12), Cables(0), Cats(0),
         //              Hamsters(2), Nails(99), Hammers(10)
         // in stock removes: Cables(0), Cats(0)
-        // qty 1-15 removes: Blueberries(90), Nails(99)
+        // qty 1-15 removes: Nails(99) (Blueberries(90) was already removed above)
         // remaining: Apples(12), Hammers(10), Hamsters(2) high to low
         List<InventoryItem> result = InventoryFilter.processAll(
                 testItems, "a", InventoryFilter.STATUS_IN_STOCK, 5,
