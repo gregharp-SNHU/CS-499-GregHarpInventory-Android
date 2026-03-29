@@ -50,6 +50,20 @@
             android:text="@string/out_of_stock" />
     </RadioGroup>
 
+    <!-- Low stock threshold (visible only when Low Stock selected) -->
+    <EditText
+        android:id="@+id/reportThresholdEditText"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/threshold_hint"
+        android:inputType="number"
+        android:gravity="center"
+        android:padding="4dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/reportTypeGroup"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <LinearLayout
         android:id="@+id/reportHeaderRow"
         android:layout_width="0dp"
@@ -58,7 +72,7 @@
         android:paddingBottom="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/reportTypeGroup">
+        app:layout_constraintTop_toBottomOf="@id/reportThresholdEditText">
 
         <TextView
             android:id="@+id/columnItemName"

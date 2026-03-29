@@ -3,6 +3,10 @@ package com.mobile2app.gregharpinventory.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.RadioGroup;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.widget.EditText;
+import android.view.View;
 import android.content.SharedPreferences;
 
 import androidx.activity.EdgeToEdge;
@@ -21,6 +25,7 @@ import com.mobile2app.gregharpinventory.model.Prefs;
 import com.mobile2app.gregharpinventory.ui.adapter.ReportAdapter;
 import com.mobile2app.gregharpinventory.viewmodel.ReportsViewModel;
 import com.mobile2app.gregharpinventory.model.Roles;
+import com.mobile2app.gregharpinventory.util.InventoryFilter;
 
 import java.util.ArrayList;
 
@@ -28,6 +33,7 @@ public class ReportsActivity extends AppCompatActivity {
 
     // variables attached to UI
     private RadioGroup reportTypeGroup;
+    private EditText reportThresholdEditText;
     private boolean updatingFromVm = false;
 
     @Override
@@ -65,6 +71,34 @@ public class ReportsActivity extends AppCompatActivity {
         // set up radio group for report type
         reportTypeGroup = findViewById(R.id.reportTypeGroup);
 
+        // use the low stock threshold the user set on the inventory screen
+        int savedThreshold = prefs.getInt(Prefs.KEY_LOW_STOCK_THRESHOLD,
+                InventoryFilter.DEFAULT_LOW_STOCK_THRESHOLD);
+        reportsViewModel.setLowThreshold(savedThreshold);
+
+        // wire up the threshold field
+        reportThresholdEditText = findViewById(R.id.reportThresholdEditText);
+        reportThresholdEditText.setText(String.valueOf(savedThreshold));
+
+        // re-filter when the threshold changes
+        reportThresholdEditText.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                try {
+                    int val = Integer.parseInt(s.toString());
+                    reportsViewModel.setLowThreshold(val);
+                    // save to preferences so inventory screen stays in sync
+                    prefs.edit()
+                            .putInt(Prefs.KEY_LOW_STOCK_THRESHOLD, val)
+                            .apply();
+                } catch (NumberFormatException ignored) {
+                    // empty or invalid -- keep current threshold
+                }
+            }
+        });
+
         // set the view model to match the UI
         reportsViewModel.getReportType().observe(this, type -> {
             // enable updating from view model
@@ -93,12 +127,15 @@ public class ReportsActivity extends AppCompatActivity {
 
             if (checkedId == R.id.rb_all) {
                 reportsViewModel.setReportType(ReportsViewModel.ReportType.ALL);
+                reportThresholdEditText.setVisibility(View.GONE);
             }
             else if (checkedId == R.id.rb_low) {
                 reportsViewModel.setReportType(ReportsViewModel.ReportType.LOW_STOCK);
+                reportThresholdEditText.setVisibility(View.VISIBLE);
             }
             else if (checkedId == R.id.rb_out) {
                 reportsViewModel.setReportType(ReportsViewModel.ReportType.OUT_OF_STOCK);
+                reportThresholdEditText.setVisibility(View.GONE);
             }
         });
 

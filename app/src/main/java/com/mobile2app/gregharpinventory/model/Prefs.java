@@ -9,6 +9,7 @@ public final class Prefs {
     public static final String KEY_SMS_ON = "sms_enabled";
     public static final String KEY_SMS_REQUEST = "sms_requested";
     public static final String KEY_SAMPLE_DB = "sample_db";
+    public static final String KEY_LOW_STOCK_THRESHOLD = "low_stock_threshold";
 
     // prevent instantiation
     private Prefs() {}
