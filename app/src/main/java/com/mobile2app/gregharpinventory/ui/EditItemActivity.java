@@ -36,7 +36,7 @@ public class EditItemActivity extends AppCompatActivity {
 
         // read the incoming data
         Intent intent = getIntent();
-        long itemId = intent.getLongExtra("item_id", -1L);
+        String itemId = intent.getStringExtra("item_id");
         String itemName = intent.getStringExtra("item_name");
         int itemQty = intent.getIntExtra("item_quantity", 0);
 
@@ -74,8 +74,8 @@ public class EditItemActivity extends AppCompatActivity {
     }
 
     // function to implement the result of editing an item
-    private void editItem(long itemId) {
-        if (itemId <= 0) {
+    private void editItem(String itemId) {
+        if (itemId == null) {
             Toaster.show(this, R.string.invalid_item_id);
             return;
         }

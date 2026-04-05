@@ -41,7 +41,14 @@ public class ItemViewModel extends AndroidViewModel {
     }
 
     // update only item quantity
-    public void updateQuantity(long id, int qty) {
+    public void updateQuantity(String id, int qty) {
         repo.updateQuantity(id, qty);
+    }
+
+    // detach the snapshot listener when the ViewModel is destroyed
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        repo.removeListener();
     }
 }

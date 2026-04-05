@@ -20,7 +20,7 @@ public class ReportsViewModel extends AndroidViewModel {
     private final MutableLiveData<Integer> threshold = new MutableLiveData<>(4);
     public final LiveData<List<ReportRow>> rows;
 
-    // get the rows
+    // constructor -- create the repository and wire up report type switching
     public ReportsViewModel(@NonNull Application app) {
         super(app);
         repo = new ItemRepository(app);
@@ -53,13 +53,10 @@ public class ReportsViewModel extends AndroidViewModel {
         return selectedType;
     }
 
-    // return current threshold
-    public LiveData<Integer> getLowThreshold() {
-        return threshold;
-    }
-
-    // get all items for report
-    public LiveData<List<ReportRow>> getAll() {
-        return repo.getAllForReport();
+    // detach the snapshot listener when the ViewModel is destroyed
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        repo.removeListener();
     }
 }

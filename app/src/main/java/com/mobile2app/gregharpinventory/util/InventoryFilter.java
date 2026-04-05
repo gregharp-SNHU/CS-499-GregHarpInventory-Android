@@ -6,17 +6,12 @@ package com.mobile2app.gregharpinventory.util;
 // testing, analysis, and maintenance of the filtering and sorting code. It
 // follows my philosophy of separation of concerns. In-memory handling is
 // appropriate for the size of datasets used in this application (even if it
-// amounts to hundreds or thousands). Larger datasets would necessitate moving
-// the filtering and sorting to the server layer, but as I'm starting with an
-// application with an on-device database that's neither possible nor is it
-// necessary at this time.
+// amounts to hundreds or thousands).
 
 // NOTE: All methods here are static and return new lists without modifying
 // the input. This is a design decision for code safety and stability.
 // The calling method retains a clean reference to the original data and can
-// re-filter or re-sort without risk of corruption. This also insulates this
-// code from the future migration of the data layer from Room/SQLite to
-// Firebase Firestore.
+// re-filter or re-sort without risk of corruption.
 
 import com.mobile2app.gregharpinventory.model.InventoryItem;
 

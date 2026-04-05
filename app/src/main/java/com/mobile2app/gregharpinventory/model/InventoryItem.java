@@ -1,11 +1,7 @@
 package com.mobile2app.gregharpinventory.model;
 
 import androidx.annotation.NonNull;
-import androidx.room.Entity;
-import androidx.room.Ignore;
-import androidx.room.PrimaryKey;
 
-@Entity(tableName = "items")
 public class InventoryItem {
     // lower and upper bounds for quantity
     public static final int MIN_QTY = 0;
@@ -15,13 +11,12 @@ public class InventoryItem {
     public static final String DEFAULT_ITEM_NAME = "No item name";
 
     // private class variables for database fields
-    @PrimaryKey(autoGenerate = true)
-    private long itemId;
+    private String itemId = ""; // firestore document ID (empty means not saved)
     @NonNull
     private String itemName = DEFAULT_ITEM_NAME;
     private int itemQuantity;
 
-    // default constructor used by Room
+    // default constructor for Firestore use
     public InventoryItem() {
         // insert default values
         this.itemName = DEFAULT_ITEM_NAME;
@@ -29,7 +24,6 @@ public class InventoryItem {
     }
 
     // parameterized constructor to create new items for insertion
-    @Ignore
     public InventoryItem(@NonNull String name, int quantity) {
         // use the setters since they perform validation
         setItemName(name);
@@ -37,8 +31,7 @@ public class InventoryItem {
     }
 
     // parameterized constructor to with id in addition to name and qty
-    @Ignore
-    public InventoryItem(long id, @NonNull String name, int quantity) {
+    public InventoryItem(String id, @NonNull String name, int quantity) {
         // use the setters since they perform validation
         setItemId(id);
         setItemName(name);
@@ -46,13 +39,18 @@ public class InventoryItem {
     }
 
     // setter for ID
-    public void setItemId(long id) {
-        // NOTE: Room ensures the ID is valid -- no need to validate
-        this.itemId = id;
+    public void setItemId(String id) {
+        // verify id is valid
+        if (id != null) {
+            this.itemId = id;
+        } else {
+            this.itemId = "";
+        }
+
     }
 
     // getter for ID
-    public long getItemId() {
+    public String getItemId() {
         return itemId;
     }
 

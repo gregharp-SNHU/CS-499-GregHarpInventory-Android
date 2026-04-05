@@ -24,7 +24,6 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
         if (initial != null) {
             this.rows.addAll(initial);
         }
-        setHasStableIds(true);
     }
 
     @NonNull
@@ -45,11 +44,6 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
     @Override
     public int getItemCount() {
         return rows.size();
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return rows.get(position).itemId;
     }
 
     // submit items for the report
@@ -78,7 +72,17 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
             // compare items on the old and new lists
             @Override
             public boolean areItemsTheSame(int oldPos, int newPos) {
-                return(oldList.get(oldPos).itemId == newList.get(newPos).itemId);
+                String oldId = oldList.get(oldPos).itemId;
+                String newId = newList.get(newPos).itemId;
+
+                // guard against null or empty IDs
+                if (oldId == null || oldId.isEmpty() ||
+                        newId == null || newId.isEmpty()) {
+                    return false;
+                }
+
+                // if non-null, return whether the IDs are equal
+                return(oldId.equals(newId));
             }
 
             // compare the contents of items on the old and new lists

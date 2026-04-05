@@ -29,9 +29,6 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Inve
         else {
             this.itemList = new ArrayList<>();
         }
-
-        // enable stable IDs so RecyclerView can keep identity across updates
-        setHasStableIds(true);
     }
 
     // inflate the layout for each inventory item
@@ -137,7 +134,17 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Inve
             // compare items on the old and new lists
             @Override
             public boolean areItemsTheSame(int oldPos, int newPos) {
-                return(oldList.get(oldPos).getItemId() == newList.get(newPos).getItemId());
+                String oldId = oldList.get(oldPos).getItemId();
+                String newId = newList.get(newPos).getItemId();
+
+                // guard against null or empty IDs
+                if (oldId == null || oldId.isEmpty() ||
+                        newId == null || newId.isEmpty()) {
+                    return false;
+                }
+
+                // if non-null, return whether the IDs are equal
+                return(oldId.equals(newId));
             }
 
             // compare the contents of items on the old and new lists
@@ -155,12 +162,6 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Inve
 
         // only update the new rows
         diff.dispatchUpdatesTo(this);
-    }
-
-    @Override
-    public long getItemId(int position) {
-        // use the Room to maintain position updates
-        return itemList.get(position).getItemId();
     }
 
     // long click listener for to edit an item

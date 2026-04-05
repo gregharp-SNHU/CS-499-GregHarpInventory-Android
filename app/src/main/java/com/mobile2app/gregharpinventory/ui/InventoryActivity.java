@@ -247,12 +247,13 @@ public class InventoryActivity extends AppCompatActivity {
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         // get item id, name and quantity from result
-                        long id = result.getData().getLongExtra("item_id", -1L);
+                        String id = result.getData().getStringExtra("item_id");
                         String updatedName = result.getData().getStringExtra("item_name");
                         int updatedQuantity = result.getData().getIntExtra("item_quantity", 0);
 
-                        if (id > 0 && updatedName != null) {
-                            // build an entity with the same PK and new values
+                        // guard against null or empty item id, null name
+                        if (id != null && !id.isEmpty() && updatedName != null) {
+                            // build an entity with the same firestore ID and new values
                             InventoryItem updatedItem = new InventoryItem(id, updatedName, updatedQuantity);
                             vm.update(updatedItem);
 

@@ -20,16 +20,13 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.mobile2app.gregharpinventory.R;
-import com.mobile2app.gregharpinventory.data.AppDatabase;
-import com.mobile2app.gregharpinventory.data.ItemDao;
 import com.mobile2app.gregharpinventory.model.InventoryItem;
 import com.mobile2app.gregharpinventory.util.SMSNotifier;
 import com.mobile2app.gregharpinventory.util.Toaster;
 import com.mobile2app.gregharpinventory.model.Roles;
 import com.mobile2app.gregharpinventory.model.Prefs;
 import com.mobile2app.gregharpinventory.model.DbKeys;
-
-import java.util.concurrent.Executors;
+import com.mobile2app.gregharpinventory.data.ItemRepository;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -206,87 +203,68 @@ public class AccountActivity extends AppCompatActivity {
         // only show the sample data button for the Owner role
         if (!role.equals(Roles.OWNER)) {
             sampleButton.setVisibility(android.view.View.GONE);
-        } else {
-            // if the database is already seeded, disable this button
-            if (prefs.getBoolean(Prefs.KEY_SAMPLE_DB, false)) {
-                // disable the button
-                sampleButton.setEnabled(false);
+        } else { // determine whether to enable the sample load button
+            // start with button disabled - enable it based upon items database contents
+            sampleButton.setEnabled(false);
 
-                // change the button text to say sample is already loaded
-                sampleButton.setText(R.string.sample_db_already_loaded);
-            }
+            // check if the items collection in Firebase has any data
+            FirebaseFirestore.getInstance()
+                    .collection(DbKeys.ITEMS_COLL)
+                    .limit(1)
+                    .get()
+                    .addOnSuccessListener(snapshot -> {
+                        if (snapshot.isEmpty()) {
+                            // no items in database - enable the button
+                            sampleButton.setEnabled(true);
+                        } else {
+                            // items exist in database -- leave disabled and set text
+                            sampleButton.setText(R.string.sample_db_already_loaded);
+                        }
+                    })
+                    .addOnFailureListener(err -> {
+                       // db check failed -- leave button disabled to be safe
+                       Toaster.show(this, getString(R.string.db_load_failed));
+                    });
         }
 
         // set onClickListener for sampleButton
         sampleButton.setOnClickListener(v ->{
-            // prevent re-load if already done
-            if (prefs.getBoolean(Prefs.KEY_SAMPLE_DB, false)) {
-                Toaster.show(this, R.string.sample_db_already_loaded);
-                return;
-            }
-
             // disable button to avoid double-click
             sampleButton.setEnabled(false);
 
-            // set prefs to note that database load button has been pressed
-            prefs.edit().putBoolean(Prefs.KEY_SAMPLE_DB, true).apply();
+            // sample items list
+            InventoryItem[] samples = new InventoryItem[] {
+                    new InventoryItem("AAA 1st Item", 1),
+                    new InventoryItem("AAA 2nd Item", 2),
+                    new InventoryItem("AAA 3rd Item", 3),
+                    new InventoryItem("AAZ Zero Quantity", 0),
+                    new InventoryItem("Apples", 12),
+                    new InventoryItem("Blueberries", 90),
+                    new InventoryItem("Strawberries", 32),
+                    new InventoryItem("Oranges", 6),
+                    new InventoryItem("Peaches", 15),
+                    new InventoryItem("Bottles of Beer", 99),
+                    new InventoryItem("Cats", 0),
+                    new InventoryItem("Dogs", 5),
+                    new InventoryItem("Fish", 21),
+                    new InventoryItem("Hamsters", 2),
+                    new InventoryItem("Measuring Tapes", 1),
+                    new InventoryItem("Nails", 99),
+                    new InventoryItem("Hammers", 10),
+                    new InventoryItem("Screwdrivers", 4),
+                    new InventoryItem("Rolls of Tape", 10),
+                    new InventoryItem("Delete Me", 3),
+            };
 
-            // run database operations in the background
-            Executors.newSingleThreadExecutor().execute(() -> {
-                // count items inserted
-                int insertedCount = 0;
+            // insert each sample item into Firestore items collection
+            ItemRepository repo = new ItemRepository(getApplicationContext());
+            for (InventoryItem item: samples) {
+                // insert each sample item into the items collection
+                repo.insert(item);
+            }
 
-                try {
-                    // connect to the item database Dao
-                    AppDatabase db = AppDatabase.getInstance(getApplicationContext());
-                    ItemDao itemDao = db.itemDao();
-
-                    // sample items list
-                    InventoryItem[] samples = new InventoryItem[] {
-                            new InventoryItem("AAA 1st Item", 1),
-                            new InventoryItem("AAA 2nd Item", 2),
-                            new InventoryItem("AAA 3rd Item", 3),
-                            new InventoryItem("AAZ Zero Quantity", 0),
-                            new InventoryItem("Apples", 12),
-                            new InventoryItem("Blueberries", 90),
-                            new InventoryItem("Strawberries", 32),
-                            new InventoryItem("Oranges", 6),
-                            new InventoryItem("Peaches", 15),
-                            new InventoryItem("Bottles of Beer", 99),
-                            new InventoryItem("Cats", 0),
-                            new InventoryItem("Dogs", 5),
-                            new InventoryItem("Fish", 21),
-                            new InventoryItem("Hamsters", 2),
-                            new InventoryItem("Measuring Tapes", 1),
-                            new InventoryItem("Nails", 99),
-                            new InventoryItem("Hammers", 10),
-                            new InventoryItem("Screwdrivers", 4),
-                            new InventoryItem("Rolls of Tape", 10),
-                            new InventoryItem("Delete Me", 3),
-                    };
-
-                    // insert each item
-                    for (InventoryItem item: samples) {
-                        // insert() returns item ID on success
-                        if (itemDao.insert(item) > 0) {
-                            // count this item
-                            insertedCount++;
-                        }
-                    }
-
-                    // report successful addition to the DB via UI thread
-                    int finalCount = insertedCount;
-                    runOnUiThread(() -> {
-                        // notify user via a Toast
-                        Toaster.show(this, getString(R.string.db_load_done, finalCount));
-                    });
-                }
-                catch (Exception e) {
-                    runOnUiThread(() -> {
-                        Toaster.show(this, getString(R.string.db_load_failed));
-                    });
-                }
-            });
+            // notify user the sample database is loaded
+            Toaster.show(this, getString(R.string.db_load_done, samples.length));
         });
 
         // set up the bottom navigation bar
