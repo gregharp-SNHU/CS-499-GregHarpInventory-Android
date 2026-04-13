@@ -167,6 +167,11 @@ public class LoginActivity extends AppCompatActivity {
                                         // re-enable the Login button so they can retry
                                         loginButton.setEnabled(true);
                                     });
+                            } else {
+                                // unexpected state -- auth succeeded but no user session
+                                Toaster.show(LoginActivity.this,
+                                        getString(R.string.invalid_login));
+                                loginButton.setEnabled(true);
                             }
                         } else {
                             // Firebase authentication failed -- notify the user
